@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profile — Delusion</title>
+<link rel="stylesheet" href="style.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden}
+#profile-page{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:110px 28px 100px}
+.rev{opacity:0;transform:translateY(26px);transition:opacity .6s ease,transform .6s ease}
+.rev.in{opacity:1;transform:translateY(0)}
+/* TOPBAR */
+.prof-topbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:28px}
+.lang-btn,.support-btn{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.6);border-radius:30px;padding:8px 16px;
+  font-size:.78rem;font-family:'Inter',sans-serif;cursor:pointer;
+  letter-spacing:.5px;transition:all .25s;position:relative
+}
+.lang-btn:hover,.support-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff}
+/* LANG DROPDOWN */
+.lang-drop{position:relative}
+.lang-btn{position:relative}
+/* HERO */
+.ph-hero{display:flex;align-items:center;gap:22px;margin-bottom:28px}
+.ph-av{width:80px;height:80px;border-radius:50%;background:#fff;color:#000;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;font-weight:900;flex-shrink:0;
+  box-shadow:0 0 55px rgba(255,255,255,.16);
+  animation:avPop .55s cubic-bezier(.34,1.56,.64,1) .15s both}
+@keyframes avPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.ph-info h1{font-size:1.9rem;font-weight:900;letter-spacing:-1.5px;margin-bottom:4px}
+.ph-info .sub{font-size:.66rem;letter-spacing:4px;color:rgba(255,255,255,.28)}
+.ph-uid-box{margin-left:auto;text-align:right;font-size:.66rem;color:rgba(255,255,255,.18);line-height:2}
+.ph-uid-box b{color:rgba(255,255,255,.4);font-size:.72rem;letter-spacing:1px}
+/* DOWNLOAD */
+.dl-btn{display:flex;align-items:center;gap:16px;width:100%;padding:18px 26px;
+  background:#fff;color:#000;border:none;border-radius:16px;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .3s;margin-bottom:20px}
+.dl-btn:hover{background:#e8e8e8;transform:translateY(-3px);box-shadow:0 14px 45px rgba(255,255,255,.2)}
+.dl-icon{font-size:1.5rem;flex-shrink:0}
+.dl-body{display:flex;flex-direction:column;text-align:left}
+.dl-title{font-size:.95rem;font-weight:800}
+.dl-sub{font-size:.68rem;color:rgba(0,0,0,.45);margin-top:2px;letter-spacing:1px}
+.dl-arr{margin-left:auto;font-size:1.2rem}
+/* UPGRADE */
+.upg-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:16px 20px;margin-bottom:18px}
+.upg-banner p{font-size:.84rem;color:rgba(255,255,255,.5);line-height:1.5}
+.upg-banner strong{color:#fff}
+.upg-btn{background:#fff;color:#000;border:none;padding:9px 18px;border-radius:9px;
+  font-size:.8rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;transition:all .3s}
+.upg-btn:hover{background:#ddd;transform:translateY(-2px)}
+/* GRID */
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.pg .s2{grid-column:1/-1}
+/* CARD */
+.pc{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;padding:24px;backdrop-filter:blur(24px);
+  transition:border-color .3s,box-shadow .3s}
+.pc:hover{border-color:rgba(255,255,255,.15);box-shadow:0 10px 36px rgba(0,0,0,.5)}
+.pc-lbl{font-size:.57rem;letter-spacing:4px;color:rgba(255,255,255,.22);margin-bottom:14px}
+/* ROWS */
+.ir{display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.ir:last-child{border-bottom:none;padding-bottom:0}
+.ir:first-of-type{padding-top:0}
+.ik{font-size:.72rem;color:rgba(255,255,255,.28)}
+.iv{font-size:.84rem;font-weight:600}
+.iv.mono{font-family:'Courier New',monospace;font-size:.72rem;color:rgba(255,255,255,.55);letter-spacing:1.5px}
+.iv.green{color:#6fff6f}
+/* PLAN BADGE */
+.pb{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:7px;
+  font-size:.72rem;font-weight:800;letter-spacing:2px;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06)}
+.pb .bd{width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 5px #fff}
+.pb.pro{border-color:rgba(160,160,255,.45);background:rgba(160,160,255,.1);color:#ccf}
+.pb.pro .bd{background:#aaf;box-shadow:0 0 7px #aaf}
+.pb.elite{border-color:rgba(255,210,60,.45);background:rgba(255,210,60,.1);color:#ffd966}
+.pb.elite .bd{background:#ffd966;box-shadow:0 0 7px #ffd966}
+.pb.beta{border-color:rgba(100,220,255,.4);background:rgba(100,220,255,.08);color:#7df}
+.pb.beta .bd{background:#7df;box-shadow:0 0 7px #7df}
+/* EXPIRE */
+.ew{display:flex;align-items:center;gap:9px;
+  background:rgba(255,170,0,.07);border:1px solid rgba(255,170,0,.22);
+  border-radius:11px;padding:11px 14px;font-size:.78rem;color:rgba(255,200,80,.85);margin-top:12px}
+/* LOGOUT */
+.lo-btn{width:100%;margin-top:20px;padding:12px;background:transparent;
+  border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);border-radius:11px;
+  font-size:.82rem;font-family:'Inter',sans-serif;cursor:pointer;letter-spacing:1px;transition:all .3s}
+.lo-btn:hover{border-color:rgba(255,255,255,.35);color:#fff}
+@media(max-width:640px){.pg{grid-template-columns:1fr}.pg .s2{grid-column:1}.ph-uid-box{display:none}}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<nav id="navbar">
+  <div class="logo">⚔ DELUSION<span>.</span></div>
+  <a href="index.html" class="sign-in-btn" style="text-decoration:none">← Home</a>
+</nav>
+<div id="profile-page">
+
+  <!-- TOPBAR: support + language -->
+  <div class="prof-topbar rev">
+    <button class="support-btn" onclick="window.open('https://discord.gg/delusion','_blank')">
+      💬 <span data-i18n="support">Support</span>
+    </button>
+    <div style="position:relative">
+      <button class="lang-btn" id="lang-toggle">
+        🌐 <span id="lang-label">EN</span> ▾
+      </button>
+      <div class="lang-drop" id="lang-drop">
+        <div class="lang-item active" data-lang="en"><span class="flag">🇬🇧</span> English</div>
+        <div class="lang-item" data-lang="ru"><span class="flag">🇷🇺</span> Русский</div>
+        <div class="lang-sep"></div>
+        <div class="lang-item" data-lang="de"><span class="flag">🇩🇪</span> Deutsch</div>
+        <div class="lang-item" data-lang="fr"><span class="flag">🇫🇷</span> Français</div>
+        <div class="lang-item" data-lang="es"><span class="flag">🇪🇸</span> Español</div>
+        <div class="lang-item" data-lang="zh"><span class="flag">🇨🇳</span> 中文</div>
+        <div class="lang-item" data-lang="tr"><span class="flag">🇹🇷</span> Türkçe</div>
+        <div class="lang-item" data-lang="pt"><span class="flag">🇧🇷</span> Português</div>
+        <div class="lang-item" data-lang="pl"><span class="flag">🇵🇱</span> Polski</div>
+        <div class="lang-item" data-lang="uk"><span class="flag">🇺🇦</span> Українська</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="ph-hero rev" style="transition-delay:.05s">
+    <div class="ph-av" id="p-av">?</div>
+    <div class="ph-info">
+      <h1 id="p-name">—</h1>
+      <div class="sub" data-i18n="member">DELUSION MEMBER</div>
+    </div>
+    <div class="ph-uid-box">
+      <div data-i18n="uid_label">ACCOUNT #</div>
+      <b id="p-uid-top">—</b>
+    </div>
+  </div>
+
+  <!-- DOWNLOAD -->
+  <div class="rev" style="transition-delay:.1s">
+    <button class="dl-btn" id="dl-btn">
+      <span class="dl-icon">⬇</span>
+      <span class="dl-body">
+        <span class="dl-title" data-i18n="dl_title">Download Launcher</span>
+        <span class="dl-sub">Delusion v4.2.1 · Windows / macOS / Linux</span>
+      </span>
+      <span class="dl-arr">→</span>
+    </button>
+  </div>
+
+  <!-- UPGRADE BANNER -->
+  <div class="upg-banner rev" id="upg" style="display:none;transition-delay:.14s">
+    <p data-i18n="upg_text">You're on <strong>FREE</strong> plan. Unlock everything with Pro.</p>
+    <button class="upg-btn" onclick="location.href='store.html'" data-i18n="upgrade">Upgrade ↗</button>
+  </div>
+
+  <div class="pg">
+
+    <!-- ACCOUNT -->
+    <div class="pc rev" style="transition-delay:.18s">
+      <div class="pc-lbl" data-i18n="account">ACCOUNT</div>
+      <div class="ir"><span class="ik" data-i18n="username">Username</span><span class="iv" id="d-user">—</span></div>
+      <div class="ir"><span class="ik">Email</span><span class="iv" id="d-email" style="font-size:.78rem;color:rgba(255,255,255,.5)">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="account_num">Account #</span><span class="iv mono" id="d-uid">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="registered">Registered</span><span class="iv" id="d-reg">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="days_active">Days Active</span><span class="iv" id="d-days">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="last_login">Last Login</span><span class="iv" id="d-login">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="status">Status</span><span class="iv green">● Active</span></div>
+    </div>
+
+    <!-- SUBSCRIPTION -->
+    <div class="pc rev" style="transition-delay:.24s">
+      <div class="pc-lbl" data-i18n="subscription">SUBSCRIPTION</div>
+      <div class="ir">
+        <span class="ik" data-i18n="plan">Plan</span>
+        <span class="pb" id="d-badge"><span class="bd"></span><span id="d-plan">FREE</span></span>
+      </div>
+      <div class="ir"><span class="ik" data-i18n="purchase_date">Purchase Date</span><span class="iv" id="d-buy">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="expires">Expires</span><span class="iv" id="d-exp">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="days_left">Days Left</span><span class="iv" id="d-left">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="duration">Duration</span><span class="iv" id="d-dur">—</span></div>
+      <div class="ir"><span class="ik">Beta доступ</span><span class="iv" id="d-beta">—</span></div>
+      <div id="ew" class="ew" style="display:none" data-i18n="exp_warn">⚠ Expires in less than 5 days</div>
+    </div>
+
+    <!-- HWID -->
+    <div class="pc rev" style="transition-delay:.3s">
+      <div class="pc-lbl" data-i18n="hwid_title">HWID</div>
+      <div class="ir"><span class="ik" data-i18n="hwid_label">Hardware ID</span><span class="iv mono" id="d-hwid">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="hwid_resets">Resets Used</span><span class="iv" id="d-resets">0 / 3</span></div>
+      <div class="ir"><span class="ik" data-i18n="hwid_last">Last Reset</span><span class="iv" id="d-hwid-date">—</span></div>
+      <button class="upg-btn rev" id="hwid-reset-btn" style="margin-top:14px;width:100%;padding:10px;font-size:.8rem" data-i18n="hwid_reset">Reset HWID</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="pc rev" style="transition-delay:.36s">
+      <div class="pc-lbl" data-i18n="stats">STATS</div>
+      <div class="ir"><span class="ik" data-i18n="sessions">Sessions</span><span class="iv" id="d-sess">—</span></div>
+      <div class="ir"><span class="ik" data-i18n="version">Client Version</span><span class="iv mono">v4.2.1</span></div>
+      <div class="ir"><span class="ik" data-i18n="engine">Bypass Engine</span><span class="iv mono">GHOST-7</span></div>
+      <div class="ir"><span class="ik" data-i18n="platform">Platform</span><span class="iv">Windows</span></div>
+    </div>
+
+  </div>
+
+  <button class="lo-btn rev" id="lo-btn" style="transition-delay:.42s" data-i18n="logout">Log Out</button>
+</div>
+
+<script src="script.js"></script>
+<script>
+(function(){
+  var user = localStorage.getItem('mc_user');
+  if(!user){ window.location.href='index.html'; return; }
+
+  // LANGS and applyLang come from script.js
+  // Apply saved language immediately
+  var savedLang = localStorage.getItem('mc_lang') || 'en';
+  // Inline fast apply (no fade) on first load so data isn't overwritten
+  (function fastApply(lang){
+    var t = (typeof LANGS !== 'undefined' && LANGS[lang]) ? LANGS[lang] : null;
+    if(!t) return;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key = el.getAttribute('data-i18n');
+      if(t[key] !== undefined) el.innerHTML = t[key];
+    });
+    var lbl = document.getElementById('lang-label');
+    if(lbl) lbl.textContent = lang.toUpperCase();
+    document.querySelectorAll('.lang-item').forEach(function(li){
+      li.classList.toggle('active', li.dataset.lang === lang);
+    });
+  })(savedLang);
+
+  // PLACEHOLDER — remove old duplicate LANGS block below
+  var _dummy = {dummy:1};
+
+  // ── Fill data ─────────────────────────────────────────
+  function fmt(iso){
+    if(!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  var plan    = localStorage.getItem('mc_plan') || 'FREE';
+  var joined  = localStorage.getItem('mc_joined') || new Date().toISOString();
+  var buyDate = localStorage.getItem('mc_plan_date');
+  var expire  = localStorage.getItem('mc_plan_expire');
+  var planDur = localStorage.getItem('mc_plan_dur') || '—';
+
+  // UID = порядковый номер аккаунта
+  var uid = localStorage.getItem('mc_uid');
+  if(!uid){
+    var base = parseInt(localStorage.getItem('mc_uid_counter')||'1000');
+    base++;
+    uid = '#' + base;
+    localStorage.setItem('mc_uid', uid);
+    localStorage.setItem('mc_uid_counter', base);
+  }
+
+  // HWID
+  var hwid = localStorage.getItem('mc_hwid');
+  if(!hwid){
+    hwid = Array.from({length:4},function(){return Math.random().toString(16).slice(2,6).toUpperCase()}).join('-');
+    localStorage.setItem('mc_hwid', hwid);
+  }
+  var hwidResets = parseInt(localStorage.getItem('mc_hwid_resets')||'0');
+  var hwidDate   = localStorage.getItem('mc_hwid_date');
+
+  var sess = parseInt(localStorage.getItem('mc_sessions')||'0')+1;
+  localStorage.setItem('mc_sessions', sess);
+
+  document.getElementById('p-av').textContent   = user[0].toUpperCase();
+  document.getElementById('p-name').textContent = user;
+  document.getElementById('p-uid-top').textContent = uid;
+  document.getElementById('d-user').textContent = user;
+  document.getElementById('d-email').textContent = localStorage.getItem('mc_email') || '—';
+  document.getElementById('d-uid').textContent  = uid;
+  document.getElementById('d-reg').textContent  = fmt(joined);
+  document.getElementById('d-login').textContent= fmt(new Date().toISOString());
+  document.getElementById('d-sess').textContent = sess;
+  document.getElementById('d-hwid').textContent = hwid;
+  document.getElementById('d-resets').textContent = hwidResets + ' / 3';
+  document.getElementById('d-hwid-date').textContent = hwidDate ? fmt(hwidDate) : '—';
+
+  var daysActive = Math.max(1,Math.floor((Date.now()-new Date(joined))/86400000));
+  document.getElementById('d-days').textContent = daysActive + ' days';
+
+  document.getElementById('d-plan').textContent = plan;
+  var badge = document.getElementById('d-badge');
+  if(plan==='PRO')   badge.classList.add('pro');
+  if(plan==='ELITE') badge.classList.add('elite');
+  if(plan==='BETA')  badge.classList.add('beta');
+
+  var hasBeta = localStorage.getItem('mc_beta') === '1' || plan === 'BETA';
+  var betaEl = document.getElementById('d-beta');
+  if(hasBeta){
+    betaEl.innerHTML = '<span style="color:#7df;font-weight:700">● Активен</span>';
+  } else {
+    betaEl.innerHTML = '<span style="color:rgba(255,255,255,.25)">✕ Нет</span>';
+  }
+
+  if(plan==='FREE'){
+    document.getElementById('d-buy').textContent  = 'N/A';
+    document.getElementById('d-exp').textContent  = 'Never';
+    document.getElementById('d-left').textContent = '∞';
+    document.getElementById('d-dur').textContent  = '—';
+    document.getElementById('upg').style.display  = 'flex';
+  } else {
+    document.getElementById('d-buy').textContent  = fmt(buyDate);
+    document.getElementById('d-exp').textContent  = fmt(expire);
+    document.getElementById('d-dur').textContent  = planDur;
+    if(expire){
+      var left = Math.ceil((new Date(expire)-Date.now())/86400000);
+      document.getElementById('d-left').textContent = left>0 ? left+' days' : 'Expired';
+      if(left<=5) document.getElementById('ew').style.display='flex';
+    }
+  }
+
+  // HWID reset
+  document.getElementById('hwid-reset-btn').addEventListener('click',function(){
+    if(hwidResets>=3){ alert('No resets left. Contact support.'); return; }
+    hwidResets++;
+    hwid = Array.from({length:4},function(){return Math.random().toString(16).slice(2,6).toUpperCase()}).join('-');
+    localStorage.setItem('mc_hwid', hwid);
+    localStorage.setItem('mc_hwid_resets', hwidResets);
+    localStorage.setItem('mc_hwid_date', new Date().toISOString());
+    document.getElementById('d-hwid').textContent   = hwid;
+    document.getElementById('d-resets').textContent = hwidResets+' / 3';
+    document.getElementById('d-hwid-date').textContent = fmt(new Date().toISOString());
+  });
+
+  // Download
+  document.getElementById('dl-btn').addEventListener('click',function(){
+    alert('Launcher download would start here.');
+  });
+
+  // Logout
+  document.getElementById('lo-btn').addEventListener('click',function(){
+    ['mc_user','mc_plan','mc_plan_date','mc_plan_expire','mc_plan_dur',
+     'mc_uid','mc_joined','mc_sessions','mc_hwid','mc_hwid_resets','mc_hwid_date','mc_email','mc_beta']
+      .forEach(function(k){localStorage.removeItem(k)});
+    window.location.href='index.html';
+  });
+
+  // Reveal on scroll
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}
+    });
+  },{threshold:0.06});
+  document.querySelectorAll('.rev').forEach(function(el){obs.observe(el);});
+})();
+</script>
+</body>
+</html>
