@@ -1,7 +1,7 @@
 // Vercel Serverless Function — POST /api/register
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_OWNER = process.env.GITHUB_OWNER;
-const GITHUB_REPO  = process.env.GITHUB_REPO;
+const GITHUB_TOKEN = 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;
+const GITHUB_OWNER = danechaspp;
+const GITHUB_REPO  = client;
 const FILE_PATH    = 'users.json';
 
 async function readUsers() {
