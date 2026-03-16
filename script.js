@@ -707,43 +707,57 @@ if (overlay) {
 
       if (!ok) return;
 
-      // Check duplicate
-      var accounts = JSON.parse(localStorage.getItem('mc_accounts') || '{}');
-      if (accounts[user.toLowerCase()]) {
-        setErr('reg-user-err', 'Username already taken'); markField('reg-user', false); return;
-      }
-      var emailTaken = Object.values(accounts).some(function(a) { return a.email === email; });
-      if (emailTaken) {
-        setErr('reg-email-err', 'Email already registered'); markField('reg-email', false); return;
-      }
-
-      // Create account
-      var counter = parseInt(localStorage.getItem('mc_uid_counter') || '1000') + 1;
-      localStorage.setItem('mc_uid_counter', counter);
-      var uid = '#' + counter;
-      var joined = new Date().toISOString();
-
-      accounts[user.toLowerCase()] = {
-        username: user, email: email, password: pass,
-        uid: uid, joined: joined
-      };
-      localStorage.setItem('mc_accounts', JSON.stringify(accounts));
-
-      // Auto login
-      localStorage.setItem('mc_user', user);
-      localStorage.setItem('mc_email', email);
-      localStorage.setItem('mc_joined', joined);
-      localStorage.setItem('mc_uid', uid);
-
       var btn = formRegister.querySelector('.modal-submit');
-      btn.textContent = '✓ Account created!';
-      btn.style.background = '#111'; btn.style.color = '#fff';
-      setTimeout(function() {
-        closeModal();
-        btn.textContent = 'Create Account →'; btn.style.background = ''; btn.style.color = '';
-        formRegister.reset();
-        showProfileBtn(user);
-      }, 900);
+      btn.textContent = 'Creating...'; btn.disabled = true;
+
+      // Hash password SHA-256 before sending
+      crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass)).then(function(buf) {
+        var hash = Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+
+        fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: user, email: email, password: hash })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+          if (!data.success) {
+            btn.textContent = 'Create Account →'; btn.disabled = false;
+            if (data.error && data.error.toLowerCase().includes('username')) {
+              setErr('reg-user-err', data.error); markField('reg-user', false);
+            } else if (data.error && data.error.toLowerCase().includes('email')) {
+              setErr('reg-email-err', data.error); markField('reg-email', false);
+            } else {
+              setErr('reg-user-err', data.error || 'Registration failed');
+            }
+            return;
+          }
+          // Save to localStorage — also keep local copy for sign-in
+          var accounts = JSON.parse(localStorage.getItem('mc_accounts') || '{}');
+          accounts[user.toLowerCase()] = {
+            username: user, email: email, password: hash,
+            uid: data.uid, joined: data.joined
+          };
+          localStorage.setItem('mc_accounts', JSON.stringify(accounts));
+          localStorage.setItem('mc_user',   user);
+          localStorage.setItem('mc_email',  email);
+          localStorage.setItem('mc_joined', data.joined);
+          localStorage.setItem('mc_uid',    data.uid);
+
+          btn.textContent = '✓ Account created!';
+          btn.style.background = '#111'; btn.style.color = '#fff';
+          setTimeout(function() {
+            closeModal();
+            btn.textContent = 'Create Account →'; btn.style.background = ''; btn.style.color = ''; btn.disabled = false;
+            formRegister.reset();
+            showProfileBtn(user);
+          }, 900);
+        })
+        .catch(function() {
+          btn.textContent = 'Create Account →'; btn.disabled = false;
+          setErr('reg-user-err', 'Network error. Try again.');
+        });
+      });
     });
   }
 
