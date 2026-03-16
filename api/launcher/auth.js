@@ -4,10 +4,12 @@
 //   GITHUB_OWNER   — your GitHub username
 //   GITHUB_REPO    — private repo name containing users.json
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_OWNER = process.env.GITHUB_OWNER;
-const GITHUB_REPO  = process.env.GITHUB_REPO;
-const FILE_PATH    = 'users.json';
+    // ── ВСТАВЬ ТОКЕН СЮДА ────────────────────────────────────────────────────
+ const GITHUB_TOKEN = "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";
+ const GITHUB_OWNER = "danechaspp";
+ const GITHUB_REPO  = "client";
+ const USERS_FILE   = "users.json";
+    // ─────────────────────────────────────────────────────────────────────────
 
 async function readUsers() {
   const res = await fetch(

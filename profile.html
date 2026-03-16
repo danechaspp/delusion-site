@@ -354,14 +354,35 @@ body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden
   // HWID reset
   document.getElementById('hwid-reset-btn').addEventListener('click',function(){
     if(hwidResets>=3){ alert('No resets left. Contact support.'); return; }
-    hwidResets++;
-    hwid = Array.from({length:4},function(){return Math.random().toString(16).slice(2,6).toUpperCase()}).join('-');
-    localStorage.setItem('mc_hwid', hwid);
-    localStorage.setItem('mc_hwid_resets', hwidResets);
-    localStorage.setItem('mc_hwid_date', new Date().toISOString());
-    document.getElementById('d-hwid').textContent   = hwid;
-    document.getElementById('d-resets').textContent = hwidResets+' / 3';
-    document.getElementById('d-hwid-date').textContent = fmt(new Date().toISOString());
+    var btn = document.getElementById('hwid-reset-btn');
+    btn.textContent = 'Resetting...'; btn.disabled = true;
+
+    fetch('/api/hwid-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data.success){
+        alert(data.error || 'Reset failed');
+        btn.textContent = 'Reset HWID'; btn.disabled = false;
+        return;
+      }
+      hwidResets++;
+      hwid = Array.from({length:4},function(){return Math.random().toString(16).slice(2,6).toUpperCase();}).join('-');
+      localStorage.setItem('mc_hwid', hwid);
+      localStorage.setItem('mc_hwid_resets', hwidResets);
+      localStorage.setItem('mc_hwid_date', new Date().toISOString());
+      document.getElementById('d-hwid').textContent   = hwid;
+      document.getElementById('d-resets').textContent = hwidResets+' / 3';
+      document.getElementById('d-hwid-date').textContent = fmt(new Date().toISOString());
+      btn.textContent = '✓ Reset done'; btn.disabled = false;
+      setTimeout(function(){ btn.textContent = 'Reset HWID'; }, 2000);
+    })
+    .catch(function(){
+      alert('Network error'); btn.textContent = 'Reset HWID'; btn.disabled = false;
+    });
   });
 
   // Change password
