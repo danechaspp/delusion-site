@@ -1,9 +1,4 @@
-// Vercel Serverless Function — POST /api/launcher/auth
-// Env vars needed (set in Vercel dashboard):
-//   GITHUB_TOKEN   — personal access token (repo scope)
-//   GITHUB_OWNER   — your GitHub username
-//   GITHUB_REPO    — private repo name containing users.json
-
+// Vercel Serverless Function — POST /api/register
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_OWNER = process.env.GITHUB_OWNER;
 const GITHUB_REPO  = process.env.GITHUB_REPO;
@@ -33,64 +28,78 @@ async function writeUsers(users, sha) {
         'Content-Type': 'application/json',
         'User-Agent': 'delusion-backend'
       },
-      body: JSON.stringify({ message: 'Update users', content, sha })
+      body: JSON.stringify({ message: 'Register user', content, sha })
     }
   );
   if (!res.ok) throw new Error('Failed to write users.json');
 }
 
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
 module.exports = async function handler(req, res) {
-  // CORS — allow launcher to call this
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
 
-  const { username, password, hwid } = req.body || {};
+  const { username, email, password } = req.body || {};
 
-  if (!username || !password || !hwid) {
+  if (!username || !email || !password) {
     return res.status(400).json({ success: false, error: 'Missing fields' });
+  }
+
+  // Validate username
+  if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) {
+    return res.status(400).json({ success: false, error: 'Invalid username' });
   }
 
   try {
     const { users, sha } = await readUsers();
 
-    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-
-    if (!user) {
-      return res.status(401).json({ success: false, error: 'Пользователь не найден' });
+    // Check duplicate username
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+      return res.status(409).json({ success: false, error: 'Username already taken' });
     }
 
-    if (user.password !== password) {
-      return res.status(401).json({ success: false, error: 'Неверный пароль' });
+    // Check duplicate email
+    if (users.find(u => u.email === email.toLowerCase())) {
+      return res.status(409).json({ success: false, error: 'Email already registered' });
     }
 
-    if (!user.subscription) {
-      return res.status(401).json({ success: false, error: 'Нет активной подписки. Купите на delusion.fun' });
-    }
+    // Generate sequential UID
+    const maxUid = users.reduce((max, u) => {
+      const n = parseInt((u.uid || '#1000').replace('#', ''));
+      return n > max ? n : max;
+    }, 1000);
 
-    // Check subscription expiry if set
-    if (user.subscriptionExpiry) {
-      const expiry = new Date(user.subscriptionExpiry);
-      if (expiry < new Date()) {
-        return res.status(401).json({ success: false, error: 'Подписка истекла. Продлите на delusion.fun' });
-      }
-    }
+    const newUser = {
+      username,
+      email: email.toLowerCase(),
+      password, // already SHA-256 hashed from client
+      hwid: '',
+      subscription: false,
+      uuid: generateUUID(),
+      uid: '#' + (maxUid + 1),
+      joined: new Date().toISOString(),
+      subscriptionExpiry: ''
+    };
 
-    // HWID binding
-    let needsWrite = false;
-    if (!user.hwid || user.hwid === '') {
-      user.hwid = hwid;
-      needsWrite = true;
-    } else if (user.hwid !== hwid) {
-      return res.status(401).json({ success: false, error: 'HWID не совпадает. Вход с другого устройства запрещён' });
-    }
+    users.push(newUser);
+    await writeUsers(users, sha);
 
-    if (needsWrite) await writeUsers(users, sha);
-
-    return res.status(200).json({ success: true, username: user.username, uuid: user.uuid });
+    return res.status(200).json({
+      success: true,
+      username: newUser.username,
+      uid: newUser.uid,
+      uuid: newUser.uuid,
+      joined: newUser.joined
+    });
 
   } catch (err) {
     console.error(err);
