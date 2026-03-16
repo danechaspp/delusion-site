@@ -638,35 +638,42 @@ if (overlay) {
 
       if (!ok) return;
 
-      // Check stored accounts
-      var accounts = JSON.parse(localStorage.getItem('mc_accounts') || '{}');
-      var found = null;
-      Object.keys(accounts).forEach(function(u) {
-        if (u.toLowerCase() === user.toLowerCase() || accounts[u].email === user.toLowerCase()) {
-          found = accounts[u];
-        }
-      });
-
-      if (!found || found.password !== pass) {
-        setErr('si-pass-err', 'Invalid username or password');
-        markField('si-pass', false);
-        return;
-      }
-
-      // Login success
-      localStorage.setItem('mc_user', found.username);
-      localStorage.setItem('mc_email', found.email);
-      if (!localStorage.getItem('mc_joined')) localStorage.setItem('mc_joined', found.joined);
-      if (!localStorage.getItem('mc_uid')) localStorage.setItem('mc_uid', found.uid);
-
       var btn = formSignin.querySelector('.modal-submit');
-      btn.textContent = '✓ Welcome, ' + found.username + '!';
-      btn.style.background = '#111'; btn.style.color = '#fff';
-      setTimeout(function() {
-        closeModal();
-        btn.textContent = 'Sign In →'; btn.style.background = ''; btn.style.color = '';
-        showProfileBtn(found.username);
-      }, 900);
+      btn.textContent = 'Checking...'; btn.disabled = true;
+
+      // Hash password before comparing
+      crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass)).then(function(buf) {
+        var hash = Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+
+        var accounts = JSON.parse(localStorage.getItem('mc_accounts') || '{}');
+        var found = null;
+        Object.keys(accounts).forEach(function(u) {
+          if (u.toLowerCase() === user.toLowerCase() || accounts[u].email === user.toLowerCase()) {
+            found = accounts[u];
+          }
+        });
+
+        if (!found || found.password !== hash) {
+          setErr('si-pass-err', 'Invalid username or password');
+          markField('si-pass', false);
+          btn.textContent = 'Sign In →'; btn.disabled = false;
+          return;
+        }
+
+        // Login success
+        localStorage.setItem('mc_user', found.username);
+        localStorage.setItem('mc_email', found.email);
+        if (!localStorage.getItem('mc_joined')) localStorage.setItem('mc_joined', found.joined);
+        if (!localStorage.getItem('mc_uid')) localStorage.setItem('mc_uid', found.uid);
+
+        btn.textContent = '✓ Welcome, ' + found.username + '!';
+        btn.style.background = '#111'; btn.style.color = '#fff';
+        setTimeout(function() {
+          closeModal();
+          btn.textContent = 'Sign In →'; btn.style.background = ''; btn.style.color = ''; btn.disabled = false;
+          showProfileBtn(found.username);
+        }, 900);
+      });
     });
   }
 

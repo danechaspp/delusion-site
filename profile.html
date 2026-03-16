@@ -208,6 +208,27 @@ body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden
       <div class="ir"><span class="ik" data-i18n="platform">Platform</span><span class="iv">Windows</span></div>
     </div>
 
+    <!-- CHANGE PASSWORD -->
+    <div class="pc rev s2" style="transition-delay:.42s">
+      <div class="pc-lbl">CHANGE PASSWORD</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end">
+        <div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-bottom:6px">Current password</div>
+          <input id="pw-old" type="password" placeholder="••••••••" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:.84rem;font-family:Inter,sans-serif;outline:none;transition:border-color .2s;box-sizing:border-box"/>
+        </div>
+        <div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-bottom:6px">New password</div>
+          <input id="pw-new" type="password" placeholder="••••••••" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:.84rem;font-family:Inter,sans-serif;outline:none;transition:border-color .2s;box-sizing:border-box"/>
+        </div>
+        <div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-bottom:6px">Confirm new</div>
+          <input id="pw-new2" type="password" placeholder="••••••••" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:.84rem;font-family:Inter,sans-serif;outline:none;transition:border-color .2s;box-sizing:border-box"/>
+        </div>
+      </div>
+      <div id="pw-err" style="font-size:.72rem;color:#ff6b6b;margin-top:8px;min-height:16px"></div>
+      <button id="pw-save-btn" style="margin-top:12px;padding:11px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:10px;font-size:.82rem;font-weight:600;font-family:Inter,sans-serif;cursor:pointer;transition:all .3s">Save new password</button>
+    </div>
+
   </div>
 
   <button class="lo-btn rev" id="lo-btn" style="transition-delay:.42s" data-i18n="logout">Log Out</button>
@@ -251,6 +272,15 @@ body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden
   var buyDate = localStorage.getItem('mc_plan_date');
   var expire  = localStorage.getItem('mc_plan_expire');
   var planDur = localStorage.getItem('mc_plan_dur') || '—';
+
+  // Also sync from mc_accounts if available
+  var accounts = JSON.parse(localStorage.getItem('mc_accounts') || '{}');
+  var acct = accounts[user.toLowerCase()];
+  if(acct){
+    if(!localStorage.getItem('mc_joined')) localStorage.setItem('mc_joined', acct.joined);
+    if(!localStorage.getItem('mc_uid'))    localStorage.setItem('mc_uid', acct.uid);
+    joined = acct.joined || joined;
+  }
 
   // UID = порядковый номер аккаунта
   var uid = localStorage.getItem('mc_uid');
@@ -332,6 +362,43 @@ body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden
     document.getElementById('d-hwid').textContent   = hwid;
     document.getElementById('d-resets').textContent = hwidResets+' / 3';
     document.getElementById('d-hwid-date').textContent = fmt(new Date().toISOString());
+  });
+
+  // Change password
+  document.getElementById('pw-save-btn').addEventListener('click', function(){
+    var oldVal  = document.getElementById('pw-old').value;
+    var newVal  = document.getElementById('pw-new').value;
+    var new2Val = document.getElementById('pw-new2').value;
+    var errEl   = document.getElementById('pw-err');
+    errEl.textContent = '';
+
+    if(!oldVal || !newVal || !new2Val){ errEl.textContent = 'Fill all fields'; return; }
+    if(newVal.length < 6){ errEl.textContent = 'New password must be at least 6 characters'; return; }
+    if(newVal !== new2Val){ errEl.textContent = 'Passwords do not match'; return; }
+
+    // Hash both passwords and compare
+    Promise.all([
+      crypto.subtle.digest('SHA-256', new TextEncoder().encode(oldVal)),
+      crypto.subtle.digest('SHA-256', new TextEncoder().encode(newVal))
+    ]).then(function(bufs){
+      var oldHash = Array.from(new Uint8Array(bufs[0])).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+      var newHash = Array.from(new Uint8Array(bufs[1])).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+
+      var accounts = JSON.parse(localStorage.getItem('mc_accounts') || '{}');
+      var key = user.toLowerCase();
+      if(!accounts[key]){ errEl.textContent = 'Account not found'; return; }
+      if(accounts[key].password !== oldHash){ errEl.textContent = 'Current password is incorrect'; return; }
+
+      accounts[key].password = newHash;
+      localStorage.setItem('mc_accounts', JSON.stringify(accounts));
+
+      document.getElementById('pw-old').value = '';
+      document.getElementById('pw-new').value = '';
+      document.getElementById('pw-new2').value = '';
+      errEl.style.color = '#6fff6f';
+      errEl.textContent = '✓ Password changed successfully';
+      setTimeout(function(){ errEl.textContent = ''; errEl.style.color = '#ff6b6b'; }, 3000);
+    });
   });
 
   // Download
